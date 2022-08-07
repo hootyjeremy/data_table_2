@@ -127,6 +127,8 @@ class DataTable2 extends DataTable {
     super.showCheckboxColumn = true,
     super.showBottomBorder = false,
     super.dividerThickness,
+    this.columnHeaderDivider,
+    this.excludeLastColumnHeaderDivider = false,
     this.minWidth,
     this.scrollController,
     this.empty,
@@ -214,6 +216,17 @@ class DataTable2 extends DataTable {
   // keep field in order to keep doc
   // ignore: overridden_fields
   final TableBorder? border;
+
+  /// This will set a divider between column headers only. Be aware when using
+  /// this parameter if already using the 'border' parameter since the 'border'
+  /// parameter will already draw a divider.
+  /// Decoration(border: Border(right: BorderSide()))
+  final BorderSide? columnHeaderDivider;
+
+  /// To be used with columnHeaderDivider, a true value will not print the
+  /// border for the very last column header. If false, or not included,
+  /// then all dividers will be present.
+  final bool excludeLastColumnHeaderDivider;
 
   /// Determines ratio of Small column's width to Medium column's width.
   /// I.e. 0.5 means that Small column is twice narower than Medium column.
@@ -304,7 +317,8 @@ class DataTable2 extends DataTable {
       required bool ascending,
       required double effectiveHeadingRowHeight,
       required MaterialStateProperty<Color?>? overlayColor,
-      Color? backgroundColor}) {
+      Color? backgroundColor,
+      Decoration? headerDividerDecoration}) {
     final ThemeData themeData = Theme.of(context);
     label = Row(
       textDirection: numeric ? TextDirection.rtl : null,
@@ -329,6 +343,7 @@ class DataTable2 extends DataTable {
     label = Container(
       padding: padding,
       height: effectiveHeadingRowHeight,
+      decoration: headerDividerDecoration,
       color: backgroundColor,
       alignment:
           numeric ? Alignment.centerRight : AlignmentDirectional.centerStart,
@@ -691,6 +706,21 @@ class DataTable2 extends DataTable {
               tableColumnWidths[displayColumnIndex] =
                   FixedColumnWidth(widths[dataColumnIndex]);
 
+              // If DataTable2 is given a BorderSide widget for the
+              // columnHeaderDivider, insert it into a BoxDecoration
+              // which will be sent to _buildHeadingCell()
+              Decoration? headerDividerDecoration = columnHeaderDivider != null
+                  ? BoxDecoration(border: Border(right: columnHeaderDivider!))
+                  : null;
+
+              // When excludeLastColumnHeaderDivider is true, then send a null
+              // headerDividerDecoration to _buildHeadingCell() so that no
+              // divider is drawn on the last column's header.
+              if (excludeLastColumnHeaderDivider &&
+                  dataColumnIndex >= columns.length - 1) {
+                headerDividerDecoration = null;
+              }
+
               var h = _buildHeadingCell(
                   context: context,
                   padding: padding,
@@ -709,7 +739,8 @@ class DataTable2 extends DataTable {
                       ? (actualFixedRows < 1
                           ? fixedColumnsColor
                           : (actualFixedRows > 0 ? fixedCornerColor : null))
-                      : null);
+                      : null,
+                  headerDividerDecoration: headerDividerDecoration);
 
               headingRow.children![displayColumnIndex] =
                   h; // heading row alone is used to display table header should there be no data rows

@@ -85,6 +85,11 @@ class DataTable2DemoState extends State<DataTable2Demo> {
                 : null),
         dividerThickness:
             1, // this one will be ignored if [border] is set above
+        columnHeaderDivider: const BorderSide(
+          width: 1.0,
+          color: Color(0xffAAAAAA),
+        ),
+        excludeLastColumnHeaderDivider: true,
         bottomMargin: 10,
         minWidth: 900,
         sortColumnIndex: _sortColumnIndex,
